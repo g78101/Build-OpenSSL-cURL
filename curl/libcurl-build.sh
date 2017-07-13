@@ -29,15 +29,19 @@ if [ "$1" == "-h" ]; then
 	usage
 fi
 
-if [ -z $2 ]; then
+if [ "$2" == "false" ]; then
+	http2flag=false
+fi
+
+if [ -z $3 ]; then
 	IOS_SDK_VERSION="" #"9.1"
 	IOS_MIN_SDK_VERSION="7.1"
 	
 	TVOS_SDK_VERSION="" #"9.0"
 	TVOS_MIN_SDK_VERSION="9.0"
 else
-	IOS_SDK_VERSION=$2
-	TVOS_SDK_VERSION=$3
+	IOS_SDK_VERSION=$3
+	TVOS_SDK_VERSION=$4
 fi
 
 if [ -z $1 ]; then
@@ -57,7 +61,7 @@ if [ ! -f "$NOHTTP2" ]; then
 	NGHTTP2="${PWD}/../nghttp2"  
 fi
 
-if [ ! -z "$NGHTTP2" ]; then 
+if [ ! -z "$NGHTTP2" ] && $http2flag; then 
 	echo "Building with HTTP2 Support (nghttp2)"
 else
 	echo "Building without HTTP2 Support (nghttp2)"
@@ -78,7 +82,7 @@ buildMac()
 		TARGET="darwin64-x86_64-cc"
 	fi
 
-	if [ ! -z "$NGHTTP2" ]; then 
+	if $http2flag; then 
 		NGHTTP2CFG="--with-nghttp2=${NGHTTP2}/Mac/${ARCH}"
 		NGHTTP2LIB="-L${NGHTTP2}/Mac/${ARCH}/lib"
 	fi
@@ -118,7 +122,7 @@ buildIOS()
 		CC_BITCODE_FLAG="-fembed-bitcode"	
 	fi
 
-	if [ ! -z "$NGHTTP2" ]; then 
+	if $http2flag; then 
 		NGHTTP2CFG="--with-nghttp2=${NGHTTP2}/iOS/${ARCH}"
 		NGHTTP2LIB="-L${NGHTTP2}/iOS/${ARCH}/lib"
 	fi
@@ -158,7 +162,7 @@ buildTVOS()
 		PLATFORM="AppleTVOS"
 	fi
 	
-	if [ ! -z "$NGHTTP2" ]; then 
+	if $http2flag; then 
 		NGHTTP2CFG="--with-nghttp2=${NGHTTP2}/tvOS/${ARCH}"
 		NGHTTP2LIB="-L${NGHTTP2}/tvOS/${ARCH}/lib"
 	fi

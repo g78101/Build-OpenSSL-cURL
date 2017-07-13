@@ -38,7 +38,8 @@ cd ..
 
 if [ "$1" == "-disable-http2" ]; then
 	touch "$NOHTTP2"
-	NGHTTP2="NONE"	
+	NGHTTP2="NONE"
+	http2flag=false
 else 
 	echo
 	echo "Building nghttp2 for HTTP2 support"
@@ -50,7 +51,7 @@ fi
 echo
 echo "Building Curl"
 cd curl
-./libcurl-build.sh "$LIBCURL"
+./libcurl-build.sh "$LIBCURL" $http2flag
 cd ..
 
 echo 
@@ -60,7 +61,9 @@ echo "openssl [$OPENSSL]"
 xcrun -sdk iphoneos lipo -info openssl/*/lib/*.a
 echo
 echo "nghttp2 (rename to libnghttp2.a) [$NGHTTP2]"
+if $http2flag ; then
 xcrun -sdk iphoneos lipo -info nghttp2/lib/*.a
+fi
 echo
 echo "libcurl (rename to libcurl.a) [$LIBCURL]"
 xcrun -sdk iphoneos lipo -info curl/lib/*.a
@@ -76,11 +79,15 @@ cp openssl/Mac/lib/libcrypto.a $ARCHIVE/libcrypto_Mac.a
 cp openssl/iOS/lib/libssl.a $ARCHIVE/libssl_iOS.a
 cp openssl/tvOS/lib/libssl.a $ARCHIVE/libssl_tvOS.a
 cp openssl/Mac/lib/libssl.a $ARCHIVE/libssl_Mac.a
+if $http2flag; then
 cp nghttp2/lib/*.a $ARCHIVE
+fi
 echo "Archiving Mac binaries for curl and openssl..."
 mv /tmp/curl $ARCHIVE
 mv /tmp/openssl $ARCHIVE
 curl https://curl.haxx.se/ca/cacert.pem > $ARCHIVE/cacert.pem
 $ARCHIVE/curl -V
 
+if $http2flag; then
 rm -f $NOHTTP2
+fi
